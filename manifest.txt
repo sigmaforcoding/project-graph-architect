@@ -1,0 +1,17 @@
+SKILL.md
+README.md
+LICENSE
+NOTICE.md
+requirements.txt
+references/primitive_guide.md
+references/prg_format_2_7.md
+references/design_system.md
+references/layout_spec_v1_5.md
+references/qa_checklist.md
+scripts/prg27.py
+scripts/validate_prg.py
+scripts/layout_audit.py
+examples/minimal_example.py
+examples/minimal_project_graph.prg
+docs/Project_Graph_设计与生成规范_v1.5.docx
+docs/Project_Graph_设计与生成规范_v1.5.pdf
