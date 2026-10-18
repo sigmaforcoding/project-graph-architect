@@ -29,6 +29,16 @@ def expand(r,m): return (r[0]-m,r[1]-m,r[2]+m,r[3]+m)
 def overlap(a,b): return a[0] < b[2] and a[2] > b[0] and a[1] < b[3] and a[3] > b[1]
 def center(r): return ((r[0]+r[2])/2,(r[1]+r[3])/2)
 
+def anchor(r, rate):
+    """Project Graph sentinel rates: 0.01/0.99 = exact side centre; otherwise centre-line."""
+    if not rate: return None
+    x, y = rate.get('x', .5), rate.get('y', .5)
+    if y == 0.99: return ((r[0]+r[2])/2, r[3])
+    if y == 0.01: return ((r[0]+r[2])/2, r[1])
+    if x == 0.99: return (r[2], (r[1]+r[3])/2)
+    if x == 0.01: return (r[0], (r[1]+r[3])/2)
+    return None
+
 def seg_intersects_rect(p1,p2,r):
     # Liang-Barsky clipping
     x1,y1=p1; x2,y2=p2; dx=x2-x1; dy=y2-y1
@@ -73,7 +83,8 @@ def main(path):
         if len(al)<2: continue
         s,t=ref_index(al[0]),ref_index(al[1])
         if s not in nodes or t not in nodes: continue
-        p1,p2=center(nodes[s]),center(nodes[t])
+        p1=anchor(nodes[s],e.get('sourceRectangleRate')) or center(nodes[s])
+        p2=anchor(nodes[t],e.get('targetRectangleRate')) or center(nodes[t])
         if e.get('_')=='LineEdge':
             for ni,r in nodes.items():
                 if ni in {s,t}: continue
