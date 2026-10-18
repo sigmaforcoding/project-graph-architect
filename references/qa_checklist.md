@@ -34,6 +34,20 @@
 - [ ] hierarchy is visible before reading the text
 - [ ] no decorative color competes with the core information
 
+## Thinking-chain mode (review / plan)
+- [ ] `thinking_chain.py check` passes with no errors; warnings reviewed
+- [ ] the root is the user's requirement / goal, with the user's original words in Details
+- [ ] branches follow cause (review) or condition (plan), not topic
+- [ ] user-driven turns are marked (`by: "user"`, blue)
+- [ ] nothing invented: every review node traces to a conversation turn
+- [ ] every branch either reaches the stop node or ends in an allowed terminal status
+- [ ] plan: every branch point has ≥2 labelled cases, and a catch-all when there are more than two
+- [ ] stop node Details list decision / completion condition, unfinished branches, exits, next steps
+- [ ] text tree shown to the user (confirmed, or attached when the user said to go ahead)
+- [ ] `build` reported no residual layout findings
+- [ ] human style (default): overview and every summary read as plain sentences a person understands without the conversation; no node ids or notation on the canvas
+- [ ] ai style only when the reader is an AI, or delivered alongside the human version
+
 ## Shipping
 - [ ] validate_prg passes
 - [ ] layout_audit reviewed

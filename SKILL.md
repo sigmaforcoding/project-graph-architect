@@ -1,6 +1,8 @@
 ---
 name: project-graph-architect
-description: Turn projects, ideas, systems, workflows, comparisons, and knowledge structures into native Project Graph `.prg` files. Model semantics first, choose Project Graph primitives deliberately, use relationship-aware layout and theme-safe visual design, then validate the archive and audit collisions before delivery.
+description: |
+  Turn projects, ideas, systems, workflows, comparisons, and knowledge structures into native Project Graph .prg files. Model semantics first, choose Project Graph primitives deliberately, use relationship-aware layout and theme-safe visual design, then validate the archive and audit collisions before delivery.
+  Includes a dedicated thinking-chain mode (思考链路图) for two jobs: reviewing and remembering how a user and an AI reasoned through a conversation (对话复盘、思考来路、决策过程), and planning a task path with a branch per situation (路径规划、分情况怎么做、决策树、预案). Writes for people by default and can also produce an AI-readable version.
 ---
 
 # Project Graph Architect Skill
@@ -14,6 +16,42 @@ Unless the user explicitly asks for another format, produce a **native `.prg` fi
 Do **not** substitute Mermaid, PNG, SVG, or a conceptual diagram for the `.prg` deliverable unless the user asks for those formats.
 
 If public Project Graph source code is consulted, treat it as **read-only format/reference material**. Do not create issues, comments, pull requests, commits, releases, uploads, or other repository mutations unless the user explicitly asks for a repository write action.
+
+## Choose the mode first
+
+| The user wants… | Mode | Follow |
+|---|---|---|
+| 复盘：回看 / 记住和 AI 的思考过程、对话历程、决策来路 | **Thinking-chain · review** | `references/thinking_chain_mode.md` |
+| 规划：动手前画任务路径、不同情况怎么做、预案、决策树 | **Thinking-chain · plan** | `references/thinking_chain_mode.md` |
+| 架构、系统、流程、对比、知识结构等其他图 | **General** | the core workflow below |
+
+Signals for thinking-chain mode: “思考链路”“复盘”“我们是怎么想到这里的”“对话历程做成图”“记住这个思路”“规划路径”“分情况”“如果…就…”“预案”.
+If a request is about a conversation's history, it is review mode even if the user says “链路图” or “流程图”.
+
+### Thinking-chain mode in short
+
+1. Write an outline JSON (schema in `references/thinking_chain_mode.md`): one root (需求 / 目标), nodes linked by **cause** (review) or **condition** (plan), statuses on every node, exactly one stop node at the bottom.
+   Always write the human fields: an `overview` for the whole graph, and for every node a natural-language `title` plus a 1–3 sentence `summary` that says what happened and why it matters (writing rules: section 3 of the mode reference). Add `short` labels as well whenever the AI version will be built.
+2. **Decide the reader yourself — do not ask.** Set `--style` from the request and context:
+
+   | Signal | Style |
+   |---|---|
+   | Default. The user will look at it: 复盘、记住思路、给我看、发给同学/老师/同事、放进笔记 | `human` |
+   | The graph is context for another agent: 交给 Codex / GPT / Claude Code、当上下文、喂给 AI、写进 AGENTS.md 或记忆、压缩一点、省 token | `ai` |
+   | Both readers are named or implied: 我看完再交给 Codex、自己复盘也给 AI 接手、存档并交接 | `both` (writes `out.prg` and `out_ai.prg`) |
+
+   When unsure, use `human`: every `.prg` already embeds the full outline JSON, so an AI can always reload it (`thinking_chain.py extract`). State the chosen style in one line when delivering, so the user can ask for the other one.
+3. `python scripts/thinking_chain.py tree outline.json` → show the text tree to the user and confirm the structure. Skip the wait only if the user already said to go ahead, and still attach the tree when delivering.
+4. `python scripts/thinking_chain.py build outline.json out.prg --style <human|ai|both>` → semantic check + layered tree layout + collision relaxation + `.prg`.
+   To **continue an earlier graph**, first run `thinking_chain.py extract old.prg outline.json`, extend the outline (new nodes, move the stop node down), and rebuild. Do not reconstruct it from the canvas.
+5. Run `validate_prg.py` and `layout_audit.py` as usual; optionally `preview_prg.py` to look at it.
+
+Rules that matter most:
+- Branch by causality, not by topic. Several parallel topic pipelines with no fork means the extraction failed.
+- Record only exploration that actually happened; rejected or superseded options need a reason.
+- Write for a person re-reading the graph months later: full short sentences, the user as 「你」, AIs by name, no arrows or slashes as logic, no shorthand like 「实现缺口」.
+- Unfinished branches end in place with a dashed border; the stop node's Details list them. Do not draw long “pending” lines across the graph to the stop node.
+- The layered tree layout (`scripts/tree_layout.py`) is **only** for this mode. Steps 3–5 below (lanes, routing by role) do not apply to it.
 
 ## Mental model
 
@@ -59,6 +97,8 @@ Use:
 See `references/primitive_guide.md`.
 
 ### 3. Plan lanes before coordinates
+
+*(General mode only. Thinking-chain mode uses the layered tree layout instead.)*
 
 Before placing nodes, define spatial lanes such as:
 - title / global principles,
@@ -165,6 +205,7 @@ Current validated target for this skill:
 - Use ZIP store / compression level 0 for Project Graph payload files.
 
 Use `scripts/prg27.py` rather than reimplementing serialization from memory.
+In thinking-chain mode, `scripts/thinking_chain.py build` calls it for you.
 
 ### 11. Validate structurally
 
